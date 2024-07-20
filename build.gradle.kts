@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.isxander"
-version = "1.0.3"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
@@ -17,6 +17,7 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("ch.qos.logback:logback-classic:1.5.6")
 }
 
 tasks.test {

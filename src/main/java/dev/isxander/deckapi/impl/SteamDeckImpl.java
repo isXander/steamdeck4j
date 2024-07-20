@@ -66,11 +66,11 @@ public class SteamDeckImpl implements SteamDeck {
         // Set up state listeners
         this.sharedJsContext.eval(
                 """
-                window.controlifyListUnregister = window.SteamClient.Input.RegisterForControllerListChanges((controllers) => {
+                window.controlifyListUnregister = SteamClient.Input.RegisterForControllerListChanges((controllers) => {
                     window.controlifySteamDeckInfo = controllers.find((controller) => controller.eControllerType == 4);
                 });
                 
-                window.controlifyStateUnregister = window.SteamClient.Input.RegisterForControllerStateChanges((controllerStates) => {
+                window.controlifyStateUnregister = SteamClient.Input.RegisterForControllerStateChanges((controllerStates) => {
                     for (state of controllerStates) {
                         if (state.unControllerIndex == window.controlifySteamDeckInfo.nControllerIndex) {
                             window.controlifySteamDeckState = state;
@@ -95,7 +95,10 @@ public class SteamDeckImpl implements SteamDeck {
     @Override
     public CompletableFuture<Void> poll() {
         CompletableFuture<Void> stateResult = sharedJsContext.eval(
-                "JSON.stringify(window.controlifySteamDeckState)",
+                """
+                SteamClient.Input.RequestGyroActive(window.controlifySteamDeckInfo.nControllerIndex, false);
+                JSON.stringify(window.controlifySteamDeckState)
+                """.stripIndent(),
                 JSStringResult.class
         ).thenAccept(json -> {
             currentState = gson.fromJson(json.getValue(), ControllerState.class);
