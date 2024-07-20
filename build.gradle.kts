@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 group = "dev.isxander"
@@ -19,4 +20,28 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+
+    repositories {
+        val username = "XANDER_MAVEN_USER".let { System.getenv(it) ?: findProperty(it) }?.toString()
+        val password = "XANDER_MAVEN_PASS".let { System.getenv(it) ?: findProperty(it) }?.toString()
+        if (username != null && password != null) {
+            maven(url = "https://maven.isxander.dev/releases") {
+                name = "XanderReleases"
+                credentials {
+                    this.username = username
+                    this.password = password
+                }
+            }
+        } else {
+            println("Xander Maven credentials not satisfied.")
+        }
+    }
 }
