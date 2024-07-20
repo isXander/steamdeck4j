@@ -1,2 +1,2 @@
-rootProject.name = "deck-api"
+rootProject.name = "steamdeck4j"
 
