@@ -96,7 +96,7 @@ public class SteamDeckImpl implements SteamDeck {
     public CompletableFuture<Void> poll() {
         CompletableFuture<Void> stateResult = sharedJsContext.eval(
                 """
-                SteamClient.Input.RequestGyroActive(window.controlifySteamDeckInfo.nControllerIndex, false);
+                SteamClient.Input.RequestGyroActive(window.controlifySteamDeckInfo.nControllerIndex, true);
                 JSON.stringify(window.controlifySteamDeckState)
                 """.stripIndent(),
                 JSStringResult.class
@@ -121,10 +121,14 @@ public class SteamDeckImpl implements SteamDeck {
     }
 
     @Override
-    public void close() throws IOException {
-        CompletableFuture.allOf(
-                sharedJsContext.eval("window.controlifyListUnregister.unregister()", JsonObject.class),
-                sharedJsContext.eval("window.controlifyStateUnregister.unregister()", JsonObject.class)
+    public void close() {
+        sharedJsContext.eval(
+                """
+                window.controlifyListUnregister.unregister()
+                window.controlifyStateUnregister.unregister()
+                SteamClient.Input.RequestGyroActive(window.controlifySteamDeckInfo.nControllerIndex, false);
+                """.stripIndent(),
+                JsonObject.class
         ).join();
 
         sharedJsContext.close();

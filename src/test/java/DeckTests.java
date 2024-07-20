@@ -11,7 +11,7 @@ public class DeckTests {
             deck.poll().get();
             ControllerState state = deck.getControllerState();
             System.out.println(state);
-            System.out.println("X: %s Y: %s Z: %s".formatted(state.flGyroDegreesPerSecondX(), state.flGyroDegreesPerSecondY(), state.flGyroDegreesPerSecondZ()));
+            System.out.println("Pitch %s Yaw %s Roll %s".formatted(state.flSoftwareGyroDegreesPerSecondPitch(), state.flSoftwareGyroDegreesPerSecondYaw(), state.flSoftwareGyroDegreesPerSecondRoll()));
         }
 
 //        deck.close();
