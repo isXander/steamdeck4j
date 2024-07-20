@@ -8,6 +8,8 @@ import dev.isxander.deckapi.api.ControllerState;
 import dev.isxander.deckapi.api.ControllerType;
 import dev.isxander.deckapi.api.SteamDeck;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,6 +20,8 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class SteamDeckImpl implements SteamDeck {
+    private static final Logger LOGGER = LoggerFactory.getLogger("SteamDeck4j");
+
     private final HttpClient httpClient;
     private final JSTab sharedJsContext;
     private final Gson gson;
@@ -25,22 +29,22 @@ public class SteamDeckImpl implements SteamDeck {
     private ControllerState currentState = ControllerState.ZERO;
     private @Nullable ControllerInfo deckInfo;
 
-    public SteamDeckImpl(String url) {
+    public SteamDeckImpl(String url) throws IOException, InterruptedException {
         this.httpClient = HttpClient.newHttpClient();
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(ControllerType.class, new ControllerTypeTypeAdapter())
                 .create();
 
-        String tabsUrl = "http://%s/json".formatted(url);
+        String tabsUrl = "%s/json".formatted(url);
 
         // Get the list of tabs (debuggable pages) from the CEF debugger
         HttpRequest tabsRequest = HttpRequest.newBuilder()
                 .uri(URI.create(tabsUrl))
                 .GET()
                 .build();
+        LOGGER.info("Requesting tabs from CEF at %s".formatted(tabsUrl));
         HttpResponse<String> tabsResponse = httpClient
-                .sendAsync(tabsRequest, HttpResponse.BodyHandlers.ofString())
-                .join();
+                .send(tabsRequest, HttpResponse.BodyHandlers.ofString());
         if (tabsResponse.statusCode() != 200) {
             throw new IllegalStateException(
                     "Failed to talk to CEF with code %d. PLEASE ENSURE DECKY IS RUNNING!"
@@ -57,6 +61,7 @@ public class SteamDeckImpl implements SteamDeck {
                 .orElseThrow(() -> new IllegalStateException("Could not find SharedJSContext tab"));
         String wsUrl = sharedJsContextTabInfo.webSocketDebuggerUrl();
         this.sharedJsContext = JSTab.open(wsUrl, httpClient).join();
+        LOGGER.info("Successfully connected to SharedJSContext tab");
 
         // Set up state listeners
         this.sharedJsContext.eval(
@@ -114,8 +119,10 @@ public class SteamDeckImpl implements SteamDeck {
 
     @Override
     public void close() throws IOException {
-        sharedJsContext.eval("window.controlifyListUnregister.unregister()", JsonObject.class).join();
-        sharedJsContext.eval("window.controlifyStateUnregister.unregister()", JsonObject.class).join();
+        CompletableFuture.allOf(
+                sharedJsContext.eval("window.controlifyListUnregister.unregister()", JsonObject.class),
+                sharedJsContext.eval("window.controlifyStateUnregister.unregister()", JsonObject.class)
+        ).join();
 
         sharedJsContext.close();
     }

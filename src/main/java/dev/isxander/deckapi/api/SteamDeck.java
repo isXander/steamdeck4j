@@ -9,7 +9,11 @@ public interface SteamDeck extends Closeable {
     String DEFAULT_URL = "http://localhost:8080";
 
     static SteamDeck create(String url) {
-        return new SteamDeckImpl(url);
+        try {
+            return new SteamDeckImpl(url);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static SteamDeck create() {

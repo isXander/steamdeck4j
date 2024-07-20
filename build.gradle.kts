@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.isxander"
-version = "1.0.1"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     api("com.google.code.gson:gson:2.11.0")
+    api("org.slf4j:slf4j-api:2.0.13")
     implementation("org.jetbrains:annotations:24.1.0")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
