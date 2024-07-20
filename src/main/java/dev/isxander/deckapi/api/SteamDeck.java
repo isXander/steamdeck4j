@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 
 public interface SteamDeck extends Closeable {
-    String DEFAULT_URL = "http://steamdeck:8080";
+    String DEFAULT_URL = "http://localhost:8080";
 
     static SteamDeck create(String url) {
         return new SteamDeckImpl(url);
