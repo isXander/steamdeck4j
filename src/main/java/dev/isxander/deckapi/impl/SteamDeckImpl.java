@@ -41,6 +41,13 @@ public class SteamDeckImpl implements SteamDeck {
         HttpResponse<String> tabsResponse = httpClient
                 .sendAsync(tabsRequest, HttpResponse.BodyHandlers.ofString())
                 .join();
+        if (tabsResponse.statusCode() != 200) {
+            throw new IllegalStateException(
+                    "Failed to talk to CEF with code %d. PLEASE ENSURE DECKY IS RUNNING!"
+                            .formatted(tabsResponse.statusCode())
+            );
+        }
+
         TabInfo[] tabs = gson.fromJson(tabsResponse.body(), TabInfo[].class);
 
         // Find the SharedJSContext tab, which contains the `SteamClient` API object
