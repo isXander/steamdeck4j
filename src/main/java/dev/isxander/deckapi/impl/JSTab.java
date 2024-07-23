@@ -2,6 +2,7 @@ package dev.isxander.deckapi.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import org.intellij.lang.annotations.Language;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -72,13 +73,18 @@ public class JSTab implements WebSocket.Listener, Closeable {
         return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
     }
 
-    public <T> CompletableFuture<T> eval(String javascript, Class<T> type) {
+    public <T> CompletableFuture<T> eval(
+            @Language(value = "JavaScript", prefix = JSContext.JS_CONTEXT)
+            String javascript,
+            Class<T> type,
+            Object... args
+    ) {
         int id = nextId.getAndIncrement();
         var message = new CEFOutgoingMessage(
                 id,
                 "Runtime.evaluate",
                 Map.of(
-                        "expression", javascript,
+                        "expression", javascript.stripIndent().replace("$$", "%s").formatted(args),
                         "userGesture", true
                 )
         );

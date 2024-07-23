@@ -10,8 +10,11 @@ public class DeckTests {
         while (true) {
             deck.poll().get();
             ControllerState state = deck.getControllerState();
-            System.out.println(state);
-            System.out.println("Pitch %s Yaw %s Roll %s".formatted(state.flSoftwareGyroDegreesPerSecondPitch(), state.flSoftwareGyroDegreesPerSecondYaw(), state.flSoftwareGyroDegreesPerSecondRoll()));
+            System.out.printf(
+                    "X %d Y %d P %d X %d Y %d P %d%n",
+                    state.sLeftPadX(), state.sLeftPadY(), state.sPressurePadLeft(),
+                    state.sRightPadX(), state.sRightPadY(), state.sPressurePadRight()
+            );
         }
 
 //        deck.close();
