@@ -3,10 +3,7 @@ package dev.isxander.deckapi.impl;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import dev.isxander.deckapi.api.ControllerInfo;
-import dev.isxander.deckapi.api.ControllerState;
-import dev.isxander.deckapi.api.ControllerType;
-import dev.isxander.deckapi.api.SteamDeck;
+import dev.isxander.deckapi.api.*;
 import net.platinumdigitalgroup.jvdf.VDFNode;
 import net.platinumdigitalgroup.jvdf.VDFParser;
 import net.platinumdigitalgroup.jvdf.VDFWriter;
@@ -24,6 +21,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,7 +37,7 @@ public class SteamDeckImpl implements SteamDeck {
     private @Nullable ControllerInfo deckInfo;
     private Long appId;
 
-    public SteamDeckImpl(String url) throws IOException, InterruptedException {
+    public SteamDeckImpl(String url) throws SteamDeckException {
         this.httpClient = HttpClient.newHttpClient();
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(ControllerType.class, new ControllerTypeTypeAdapter())
@@ -49,13 +48,21 @@ public class SteamDeckImpl implements SteamDeck {
         // Get the list of tabs (debuggable pages) from the CEF debugger
         HttpRequest tabsRequest = HttpRequest.newBuilder()
                 .uri(URI.create(tabsUrl))
+                .timeout(Duration.of(5, ChronoUnit.SECONDS))
                 .GET()
                 .build();
-        LOGGER.info("Requesting tabs from CEF at %s".formatted(tabsUrl));
-        HttpResponse<String> tabsResponse = httpClient
-                .send(tabsRequest, HttpResponse.BodyHandlers.ofString());
+
+        LOGGER.info("Requesting tabs from CEF at {}", tabsUrl);
+        HttpResponse<String> tabsResponse;
+        try {
+            tabsResponse = httpClient
+                    .send(tabsRequest, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new SteamDeckException("Failed to talk to CEF", e);
+        }
+
         if (tabsResponse.statusCode() != 200) {
-            throw new IllegalStateException(
+            throw new SteamDeckException(
                     "Failed to talk to CEF with code %d. PLEASE ENSURE DECKY IS RUNNING!"
                             .formatted(tabsResponse.statusCode())
             );

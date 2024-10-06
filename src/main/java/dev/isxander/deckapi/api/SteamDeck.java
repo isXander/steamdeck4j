@@ -9,15 +9,11 @@ import java.util.concurrent.CompletableFuture;
 public interface SteamDeck extends Closeable {
     String DEFAULT_URL = "http://localhost:8080";
 
-    static SteamDeck create(String url) {
-        try {
-            return new SteamDeckImpl(url);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    static SteamDeck create(String url) throws SteamDeckException {
+        return new SteamDeckImpl(url);
     }
 
-    static SteamDeck create() {
+    static SteamDeck create() throws SteamDeckException {
         return create(DEFAULT_URL);
     }
 
