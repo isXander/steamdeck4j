@@ -36,6 +36,7 @@ public class SteamDeckImpl implements SteamDeck {
     private ControllerState currentState = ControllerState.ZERO;
     private @Nullable ControllerInfo deckInfo;
     private Long appId;
+    private boolean isGameInFocus;
 
     public SteamDeckImpl(String url) throws SteamDeckException {
         this.httpClient = HttpClient.newHttpClient();
@@ -143,7 +144,10 @@ public class SteamDeckImpl implements SteamDeck {
             return null;
         });
 
-        return CompletableFuture.allOf(stateResult, listResult);
+        CompletableFuture<Void> focusResult = getGameFocusState()
+                .thenAccept(focus -> isGameInFocus = focus);
+
+        return CompletableFuture.allOf(stateResult, listResult, focusResult);
     }
 
     @Override
@@ -301,6 +305,20 @@ public class SteamDeckImpl implements SteamDeck {
                 JSStringResult.class,
                 appId & ~(-1 << 22)
         ).thenApply(string -> Path.of(string.getValue()));
+    }
+
+    @Override
+    public boolean isGameInFocus() {
+        return isGameInFocus;
+    }
+
+    private CompletableFuture<Boolean> getGameFocusState() {
+        return sharedJsContext.eval(
+                """
+                SteamUIStore.MainRunningAppID === FocusedAppWindowStore.m_unFocusedAppID
+                """,
+                JsonObject.class
+        ).thenApply(json -> json.get("result").getAsBoolean());
     }
 
     @Override

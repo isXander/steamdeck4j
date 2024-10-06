@@ -21,6 +21,8 @@ public interface SteamDeck extends Closeable {
 
     ControllerInfo getControllerInfo();
 
+    boolean isGameInFocus();
+
     CompletableFuture<Void> openModalKeyboard(boolean enterDismissesKeyboard);
 
     CompletableFuture<Path> doSteamScreenshot(Path screenshotPath, String caption);
