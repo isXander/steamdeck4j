@@ -317,8 +317,8 @@ public class SteamDeckImpl implements SteamDeck {
                 """
                 SteamUIStore.MainRunningAppID === FocusedAppWindowStore.m_unFocusedAppID
                 """,
-                JsonObject.class
-        ).thenApply(json -> json.get("result").getAsBoolean());
+                JSBooleanResult.class
+        ).thenApply(JSBooleanResult::getValue);
     }
 
     @Override
