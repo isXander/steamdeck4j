@@ -4,15 +4,21 @@ plugins {
 }
 
 group = "dev.isxander"
-version = "1.1.6"
+version = "1.1.7"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    api("com.google.code.gson:gson:2.11.0")
-    api("org.slf4j:slf4j-api:2.0.13")
+    fun apiVer(notation: String, action: Action<MutableVersionConstraint>) = api(notation) {
+        version {
+            action.execute(this)
+        }
+    }
+
+    apiVer("com.google.code.gson:gson") { prefer("2.11.0") }
+    apiVer("org.slf4j:slf4j-api") { prefer("2.0.13") }
     implementation("org.jetbrains:annotations:24.1.0")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
